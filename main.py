@@ -43,7 +43,7 @@ def correct_text(text):
     )
 
     # Step 3: Standardize Spelling (UK to US)
-    corrected_text = uk_to_us(corrected_text)
+    corrected_text = standardize_spelling(corrected_text, uk_to_us)
 
     return corrected_text
 
