@@ -1,18 +1,23 @@
 import json
 from correct import correct_text
 import pprint
+from gsheets import Sheets
 
 
 # Load the JSON file
-path = '/Users/t/PycharmProjects/expert-dashboard/prisma/seed/tmp/ProductApplicationEvaluation.json'
-with open(path, 'r') as file:
-    data = json.load(file)
+def load_data():
+    path = '/Users/t/PycharmProjects/expert-dashboard/prisma/seed/tmp/ProductApplicationEvaluation.json'
+    with open(path, 'r') as file:
+        data = json.load(file)
+    return data
 
 # Process the evaluations.
 def process_evaluations(data):   
     for i, item in enumerate(data):
         print(item)
         before = item["reference"]
+        if not before:
+            continue
         corrected_text, errors = correct_text(item["reference"])
         after = corrected_text
         
@@ -23,12 +28,21 @@ def process_evaluations(data):
         pprint.pprint(f"After: {after}")
         
         print("Progress: ", i/len(data))
+        
+    save_rows(data)
     
     
 
-
+# @TD TODO: Save the processed data to a Google Sheet using Google Sheets API
+def save_rows(data):
+    """ 
+    Docs: https://gsheets.readthedocs.io/en/stable/api.html#sheets
+    """
+    client = Sheets.from_files('~/client_secrets.json', '~/storage.json')
+    
     
 
+    
 
 if __name__ == "__main__":
     sample_data = [
@@ -47,4 +61,6 @@ if __name__ == "__main__":
              "<p>Plaftorm automatically calculates an overall score for the candidate based on all of the overall scores a candidate has received.</p>")}
     ]
     
-    process_evaluations(sample_data)
+    data = load_data()
+    
+    process_evaluations(data)
