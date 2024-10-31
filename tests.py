@@ -1,5 +1,5 @@
 import unittest
-from main import correct_text
+from correct import correct_text
 
 class TestCorrectText(unittest.TestCase):
     def test_spelling_errors(self):

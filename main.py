@@ -1,40 +1,50 @@
-import language_tool_python
-import re
+import json
+from correct import correct_text
+import pprint
 
-tool = language_tool_python.LanguageTool("en-US")
 
+# Load the JSON file
+path = '/Users/t/PycharmProjects/expert-dashboard/prisma/seed/tmp/ProductApplicationEvaluation.json'
+with open(path, 'r') as file:
+    data = json.load(file)
 
-def correct_text(text, location_info=None):
-    """
-    Corrects the text by addressing grammar, spelling, punctuation, 
-    and standardizing naming and spelling.
-    """
-    errors = []
-    matches = tool.check(text)
-    
-    matches.sort(key=lambda x: x.offset, reverse=True)
-    
-    corrected_text = text
-    for match in matches:
-        original = corrected_text[match.offset : match.offset + match.errorLength]
-        corrected = match.replacements[0] if match.replacements else original
+# Process the evaluations.
+def process_evaluations(data):   
+    for i, item in enumerate(data):
+        print(item)
+        before = item["reference"]
+        corrected_text, errors = correct_text(item["reference"])
+        after = corrected_text
         
-        errors.append({
-            "value": original,
-            "error_type": match.ruleId,
-            "corrected_value": corrected,
-            "location": location_info
-        })
+        pprint.pprint(f"Errors:")
+        for error in errors:
+            pprint.pprint(error)
+        pprint.pprint(f"Before: {before}")
+        pprint.pprint(f"After: {after}")
         
-        # Apply correction
-        corrected_text = corrected_text[:match.offset] + corrected + corrected_text[match.offset + match.errorLength:]
+        print("Progress: ", i/len(data))
     
-    return corrected_text, errors
+    
+
+
+    
+
 
 if __name__ == "__main__":
-    text = "She don't like ice cream. She go to shcool every day. Weve tested HubSpot and hubspot for our organisation. Her favourite colour is blue. We realiesed the jewellery is stuning,."
-    corrected, errors = correct_text(text)
-    print("Corrected Text:\n", corrected)
-    print("\nErrors Found:")
-    for error in errors:
-        print(error)
+    sample_data = [
+        {"id":"qare5tnsulg5fxrqsdzj6d28",
+         "productApplicationId":"cliirb90y000fmh08icgw80s8",
+         "evaluationCriterionId":"cm21wbyjm000110izvphizv8s",
+         "answer":"YES",
+         "comment": None,
+         "quality":6,
+         "reference": (
+             "<p><span style=\"color: rgb(0, 0, 0);\">You can set up a </span>"
+             "<strong style=\"color: rgb(0, 0, 0);\">different interview kit for each interview stage</strong>"
+             "<span style=\"color: rgb(0, 0, 0);\">.</span></p><p><br></p>"
+             "<p>Interview Kit:</p><p>- Add new sections</p><p>- Set multiple question types: Score, Number, Multiple Choice, Yes/ No, Multiple Choice, Long/ Short Answer etc.</p><p>- Include candidate info e.g. CV</p><p>- Include job info e.g. job details and requireements</p><p><br></p>"
+             "<p>Score candidates:</p><p>- Give candidates an overall scroe for that interview stage</p><p>- Give candidates multiple scores for that interview stage e.g. for each skill you're evaluating</p><p><br></p>"
+             "<p>Plaftorm automatically calculates an overall score for the candidate based on all of the overall scores a candidate has received.</p>")}
+    ]
+    
+    process_evaluations(sample_data)
