@@ -32,9 +32,9 @@ def process_evaluations(data):
 
 if __name__ == "__main__":
     sample_data = [
-        {"id":"qare5tnsulg5fxrqsdzj6d28",
-         "productApplicationId":"cliirb90y000fmh08icgw80s8",
-         "evaluationCriterionId":"cm21wbyjm000110izvphizv8s",
+        {"id":"1234",
+         "productApplicationId":"5678",
+         "evaluationCriterionId":"91011",
          "answer":"YES",
          "comment": None,
          "quality":6,
