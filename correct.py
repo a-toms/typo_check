@@ -1,5 +1,4 @@
 import language_tool_python
-import re
 
 tool = language_tool_python.LanguageTool("en-US")
 

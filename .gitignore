@@ -6,3 +6,7 @@ venv/
 *.pyw
 *.pywz
 .DS_Store
+.env
+/sample_data
+*.json
+*.csv

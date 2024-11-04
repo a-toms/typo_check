@@ -1,66 +1,74 @@
 import json
 from correct import correct_text
 import pprint
-from gsheets import Sheets
+import dotenv
+import csv
+from datetime import datetime
+
+
+dotenv.load_dotenv()
 
 
 # Load the JSON file
-def load_data():
-    path = '/Users/t/PycharmProjects/expert-dashboard/prisma/seed/tmp/ProductApplicationEvaluation.json'
+def get_data():
+    path = 'sample_data/ProductApplicationEvaluation.json'
     with open(path, 'r') as file:
         data = json.load(file)
     return data
 
 # Process the evaluations.
-def process_evaluations(data):   
+def transform(data):   
+    processed_data = []
     for i, item in enumerate(data):
-        print(item)
         before = item["reference"]
         if not before:
             continue
         corrected_text, errors = correct_text(item["reference"])
         after = corrected_text
         
-        pprint.pprint(f"Errors:")
-        for error in errors:
-            pprint.pprint(error)
-        pprint.pprint(f"Before: {before}")
-        pprint.pprint(f"After: {after}")
+        if errors:
+            for error in errors:
+                processed_data.append({
+                    "id": item["id"],
+                    "error": error,
+                    "before": before,
+                    "after": after
+            })
         
         print("Progress: ", i/len(data))
+    return processed_data
         
-    save_rows(data)
     
     
 
 # @TD TODO: Save the processed data to a Google Sheet using Google Sheets API
-def save_rows(data):
-    """ 
-    Docs: https://gsheets.readthedocs.io/en/stable/api.html#sheets
-    """
-    client = Sheets.from_files('~/client_secrets.json', '~/storage.json')
+def save_rows(data: list[dict]):
+    # Prepare data
+    headers = ["id", "error", "before", "after"]
+    rows = []
+    for datum in data:
+        try:
+            rows.append([datum["id"], datum["error"], datum["before"], datum["after"]])
+        except Exception as e:
+            print(f"Error: {datum}")
     
+    # Generate filename with timestamp
+    filename = f'results_{datetime.now().strftime("%Y%m%d_%H%M%S")}.csv'
     
-
+    # Write data
+    with open(filename, 'w', newline='') as f:
+        writer = csv.writer(f)
+        writer.writerow(headers)
+        writer.writerows(rows)
     
+    print(f"Data saved to file: {filename}")
 
 if __name__ == "__main__":
     sample_data = [
-        {"id":"1234",
-         "productApplicationId":"5678",
-         "evaluationCriterionId":"91011",
-         "answer":"YES",
-         "comment": None,
-         "quality":6,
-         "reference": (
-             "<p><span style=\"color: rgb(0, 0, 0);\">You can set up a </span>"
-             "<strong style=\"color: rgb(0, 0, 0);\">different interview kit for each interview stage</strong>"
-             "<span style=\"color: rgb(0, 0, 0);\">.</span></p><p><br></p>"
-             "<p>Interview Kit:</p><p>- Add new sections</p><p>- Set multiple question types: Score, Number, Multiple Choice, Yes/ No, Multiple Choice, Long/ Short Answer etc.</p><p>- Include candidate info e.g. CV</p><p>- Include job info e.g. job details and requireements</p><p><br></p>"
-             "<p>Score candidates:</p><p>- Give candidates an overall scroe for that interview stage</p><p>- Give candidates multiple scores for that interview stage e.g. for each skill you're evaluating</p><p><br></p>"
-             "<p>Plaftorm automatically calculates an overall score for the candidate based on all of the overall scores a candidate has received.</p>")}
+        {"id": "1234", "errors": ["Sample error", "Sample error 2"], "before": "Before", "after": "After"}
     ]
     
-    data = load_data()
+    data = get_data()
+    processed_data = transform(data)
+    save_rows(processed_data)
     
-    process_evaluations(data)
